@@ -271,7 +271,7 @@ void reconnectMQTT() {
   const char* conexion_topic = topic_connect.c_str();
 
   // Topic de subscripcion
-  topic_string_sub = ("orchard/" + String(TYPE_NODE) + "/" + clientId + "/activate_led");
+  topic_string_sub = ("cabrerapinto/" + String(TYPE_NODE) + "/" + clientId + "/activate_led");
   
   Serial.println("[MQTT] reconnect loop...");
   while (!client.connected()) {
