@@ -424,11 +424,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   if (cmdOn) {
-    // ON/1/true => enciende LED (active-low => LOW enciende) [web:219]
+    // ON/1/true => enciende LED (active-low => LOW enciende) 
     digitalWrite(LED_PIN, LOW);
     Serial.println("[LED] Command ON => LED ON (LOW)");
   } else {
-    // OFF/0/false => apaga LED (active-low => HIGH apaga) [web:219]
+    // OFF/0/false => apaga LED (active-low => HIGH apaga) 
     digitalWrite(LED_PIN, HIGH);
     Serial.println("[LED] Command OFF => LED OFF (HIGH)");
   }
