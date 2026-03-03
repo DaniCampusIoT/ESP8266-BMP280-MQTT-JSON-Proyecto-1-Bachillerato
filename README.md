@@ -34,7 +34,6 @@ Está pensado como práctica guiada para alumnado de 1º de Bachillerato: aprend
 
 **NOTA**: Si aparece algún error a la hora de instalar el driver, instalarlo con la placa Wemos D1 conectada al PC.
 - Cables Dupont
-- (Opcional) Resistencias pull-up I2C 4.7kΩ si el módulo no las incluye
 
 ***
 
@@ -58,13 +57,26 @@ Instala en Arduino IDE (Library Manager):
 - Adafruit BMP280 Library
 - ArduinoJson
 - PubSubClient
-- (ESP8266 core instalado en el IDE)
+- Para las características del ESP8266, como es el WiFi, tenemos que tener el core instalado en el IDE. Para hacer esto, tenemos que ir a "Archivos" o "File" y hacer click en "Preferencias" o "Preferences".
+  
+<img width="891" height="615" alt="Screenshot_2" src="https://github.com/user-attachments/assets/bf18bc3e-4550-4b64-a274-acbb32c2fe17" />
+
+- Una ver ahí, tenemos que copiar en la casilla que se marca en el recuadro rojo las direcciones URLs a las placas que vamos a utilizar. Esto nos permite importar las características de los microcontroladores ESP8266 y el ESP32.
+<img width="809" height="550" alt="Screenshot_3" src="https://github.com/user-attachments/assets/8a6d64c7-042d-4f54-9f75-841802146e36" />
+
+Copia los siguientes enlaces y pégalos en el recuadro que te muestro en la imagen de arriba:
+
+```
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+```
+(Observa el icono con dos recuadros superpuestos, arriba a la derecha. Hacer click en este icono te permite copiar el contenido del cuadro gris, en este caso, la URL) 
 
 ***
 
 ## Configuración rápida 
 
-En la cabecera del código:
+En la cabecera del código verás parámetros como estos (puedes cambiarlos por **tus propios valores**):
 
 ```cpp
 #define WIFI_SSID     "TU_WIFI"
@@ -73,14 +85,26 @@ En la cabecera del código:
 #define SET_SECURE_WIFI false
 
 // Si SET_SECURE_WIFI == false:
-#define MQTT_SERVER "192.168.1.81"
+#define MQTT_SERVER "136.112.103.14"
 #define MQTT_PORT   1883
 ```
 
+Qué significa cada uno:
+
+- `WIFI_SSID` y `WIFI_PASSWORD`: el nombre y contraseña de la WiFi a la que se conectará el ESP8266 (pon la de tu casa o la del instituto).
+- `MQTT_SERVER` y `MQTT_PORT`: la “dirección” y el puerto del servidor MQTT (broker) al que enviará los datos.
+
 Otros parámetros útiles:
 
-- `TYPE_NODE`: etiqueta para organizar topics (`meteorologia`, `aula1`, etc.).
-- `SEND_PERIOD_MS`: periodo de publicación (por defecto 5000 ms).
+- `TYPE_NODE`: etiqueta para organizar topics (`meteorologia`, `aula1`, `grupo4`, etc.).
+- `SEND_PERIOD_MS`: periodo de publicación (por defecto 5000 ms, o sea, cada 5 segundos).
+
+Además, en la función `sendToBroker()` puedes cambiar el **topic de envío** para que identifique mejor al alumno o al grupo (por ejemplo, incluir `grupo4`, `alumno_carla`, `mesa2`, etc.) al final del topic. Así, cuando miréis los datos en Node-RED, sabréis de quién es cada sensor sin confusiones.
+
+<img width="1083" height="732" alt="Screenshot_4" src="https://github.com/user-attachments/assets/e3a386e3-c3f0-42d9-b6ea-fbc342030d76" />
+
+
+
 
 ***
 
