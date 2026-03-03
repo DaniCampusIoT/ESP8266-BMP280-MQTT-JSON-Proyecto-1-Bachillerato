@@ -30,6 +30,9 @@ Está pensado como práctica guiada para alumnado de 1º de Bachillerato: aprend
 
 - 1 × ESP8266 NodeMCU (o compatible)
 - 1 × Sensor BMP280 por I2C
+- [Descargar aquí](https://sparks.gogo.co.nz/ch340.html) el **Driver CH340**  
+
+**NOTA**: Si aparece algún error a la hora de instalar el driver, instalarlo con la placa Wemos D1 conectada al PC.
 - Cables Dupont
 - (Opcional) Resistencias pull-up I2C 4.7kΩ si el módulo no las incluye
 
