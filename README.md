@@ -21,7 +21,7 @@ Objetivo didáctico: entender un proyecto IoT completo de principio a fin:
 
 - Se conecta a una red **WiFi** (si falla, vuelve a intentarlo).
 - Se conecta a un **broker MQTT** (si se corta, reconecta).
-- Publica un estado de conexión **Online/Offline** usando **LWT** (Last Will): así se puede saber desde fuera si el ESP “está vivo” o se ha caído. [web:407]
+- Publica un estado de conexión **Online/Offline** usando **LWT** (Last Will): así se puede saber desde fuera si el ESP “está vivo” o se ha caído. 
 - Detecta el sensor BMP280 por I2C (dirección típica `0x76` o `0x77`) y lo configura.
 - Cada `SEND_PERIOD_MS` (por defecto, 5000 ms):
   - Lee `temperatura_c`, `presion_hpa` y `altitud_m` (estimada).
