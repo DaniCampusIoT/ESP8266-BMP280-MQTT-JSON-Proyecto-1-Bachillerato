@@ -1,5 +1,5 @@
 
-# ESP8266 + BMP280 → MQTT (JSON)
+# BMP280 en ESP8266 (Wemos D1) con Arduino y MQTT
 
 Proyecto de clase (IoT / meteorología) para **1º Bachillerato**: montamos una mini estación meteorológica con un ESP8266 y un sensor BMP280, y enviamos los datos por WiFi usando MQTT en formato JSON.
 
