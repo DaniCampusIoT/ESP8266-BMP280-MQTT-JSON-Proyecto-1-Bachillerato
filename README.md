@@ -254,7 +254,8 @@ MQTT funciona como un sistema de mensajería con “canales” llamados **topics
 
 Al inicio del programa, vemos los topics a los que se van a enviar los datos y a los que nos hemos suscrito para poder controlar lo que queramos. Podemos crear el nuestro:
 
-<img width="1299" height="301" alt="Screenshot_1" src="https://github.com/user-attachments/assets/659a3157-4d6a-453e-8d9d-cc889944397a" />
+<img width="1552" height="538" alt="Screenshot_16" src="https://github.com/user-attachments/assets/20d34e44-19d4-4d18-b2fb-bd7d8b0d6887" />
+
 
 ### 8.2 Nodos que verás en el flujo
 
