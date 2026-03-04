@@ -68,7 +68,6 @@ Copia los siguientes enlaces y pégalos en el recuadro que te muestro en la imag
 
 ```
 http://arduino.esp8266.com/stable/package_esp8266com_index.json
-https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
 (Observa el icono con dos recuadros superpuestos, arriba a la derecha. Hacer click en este icono te permite copiar el contenido del cuadro gris, en este caso, la URL) 
 
