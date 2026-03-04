@@ -37,16 +37,32 @@ Está pensado como práctica guiada para alumnado de 1º de Bachillerato: aprend
 
 ***
 
-## Conexiones 
+## Cableado (Wemos D1 + BMP280 por I2C)
 
-### BMP280 (I2C) → NodeMCU (ESP8266)
+En **Wemos D1**, los pines I2C más usados son:
 
-- **VCC → 3V3**
-- **GND → GND**
-- **SDA → D2 (GPIO4)**
-- **SCL → D1 (GPIO5)**
+- **D1 = SCL = GPIO5**
+- **D2 = SDA = GPIO4**
 
-> Importante: usa 3.3V (no 5V) para evitar problemas o daños.
+Si no sabes ubicarlos en la placa, a pesar de que están serigrafiados, búscalos en google (Wemos D1 pinout).
+
+### Conexiones (I2C)
+
+![Nuevo Presentación de Microsoft PowerPoint](https://github.com/user-attachments/assets/03c42897-e598-430f-830e-7facc8c6fbce)
+
+
+- Wemos **3V3** → BMP280 **VCC / VIN** (usa 3.3V)
+- Wemos **G** (GND) → BMP280 **GND**
+- Wemos **D1 (GPIO5 / SCL)** → BMP280 **SCL**
+- Wemos **D2 (GPIO4 / SDA)** → BMP280 **SDA**
+
+
+### Pines extra del BMP280 (si tu placa los tiene)
+
+Muchos módulos BMP280 traen pines **CSB** y **SDO**:
+
+- **CSB**: para I2C normalmente debe ir a **3V3** (en algunos módulos ya viene preparado, pero si no detecta el sensor, prueba a fijarlo a 3V3).
+- **SDO**: selecciona la dirección I2C (típicamente `0x76` u `0x77`); a **GND** suele dar `0x76` y a **3V3** suele dar `0x77` (depende del módulo).
 
 ***
 
