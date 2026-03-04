@@ -89,7 +89,22 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 ***
 
-## 4) Configuración rápida 
+## 4) Estructura del código 
+
+Funciones principales:
+
+- `wifiConnect()`: conecta a WiFi (bloqueante con reintentos).
+- `reconnectMQTT()`: conecta a MQTT y configura LWT + publica “Online”.
+- `i2cScan()`: escáner I2C para verificar que el sensor responde (diagnóstico).
+- `iniciaSensor()`: inicializa el BMP280 (0x76/0x77) y configura el muestreo.
+- `sendToBroker()`: lee sensor → crea JSON → publica por MQTT.
+- `loop()`: mantiene conexiones y ejecuta el envío periódico.
+
+Accede a la carpeta `bmp280` y abre el archivo `bmp280.ino`. Tómate tu tiempo para intentar entender el código.
+
+***
+
+## 5) Configuración rápida 
 
 En la cabecera del código verás parámetros como estos (puedes cambiarlos por **tus propios valores**):
 
@@ -119,11 +134,9 @@ Además, en la función `sendToBroker()` puedes cambiar el **topic de envío** p
 <img width="1083" height="732" alt="Screenshot_4" src="https://github.com/user-attachments/assets/e3a386e3-c3f0-42d9-b6ea-fbc342030d76" />
 
 
-
-
 ***
 
-## 5) Topics MQTT y ejemplo de mensaje
+## 6) Topics MQTT y ejemplo de mensaje
 
 ### Topic de datos
 
@@ -164,88 +177,14 @@ orchard/<TYPE_NODE>/ESP8266Client-<chipId>/connection
 
 ***
 
-## 6) Estructura del código 
-Funciones principales:
-
-- `wifiConnect()`: conecta a WiFi (bloqueante con reintentos).
-- `reconnectMQTT()`: conecta a MQTT y configura LWT + publica “Online”.
-- `i2cScan()`: escáner I2C para verificar que el sensor responde (diagnóstico).
-- `iniciaSensor()`: inicializa el BMP280 (0x76/0x77) y configura el muestreo.
-- `sendToBroker()`: lee sensor → crea JSON → publica por MQTT.
-- `loop()`: mantiene conexiones y ejecuta el envío periódico.
-
-***
-
-## 7) Cómo modificar sensores y enviar otros datos
-
-La parte “educativa” del proyecto es que el alumnado pueda **cambiar el sensor** o **añadir más variables**. Estas son las zonas que deben tocar:
-
-### 1) Añadir una nueva librería / objeto del sensor
-
-- En la parte de `#include` (arriba).
-- Crear una instancia global (igual que `Adafruit_BMP280 bmp;`).
-
-
-### 2) Inicialización del sensor
-
-- En `setup()` o en una nueva función tipo `iniciaSensorX()`.
-- Patrón recomendado:
-    - `i2cScan();` (si es I2C)
-    - `sensor.begin(...)` y logs por Serial.
-
-
-### 3) Lectura y publicación (la parte clave)
-
-En `sendToBroker()`:
-
-- Sustituir estas lecturas:
-
-```cpp
-float tempC   = bmp.readTemperature();
-float pressHP = bmp.readPressure() / 100.0;
-float altM    = bmp.readAltitude(SEALEVELPRESSURE_HPA);
-```
-
-- Y modificar el JSON en:
-
-```cpp
-JsonObject values = doc.createNestedObject("values");
-values["temperatura_c"] = tempC;
-values["presion_hpa"]   = pressHP;
-values["altitud_m"]     = altM;
-```
-
-
-#### Ejemplo: añadir “luz” (LDR analógico) o “humedad”
-
-- Lees el nuevo dato (p.ej. `int luz = analogRead(A0);`)
-- Lo añades al JSON:
-
-```cpp
-values["luz_raw"] = luz;
-```
-
-
-### 4) Cambiar el topic de publicación (opcional)
-
-También en `sendToBroker()`:
-
-```cpp
-String pub_topic = "orchard/" + TYPE_NODE + "/" + String(ESP.getChipId(), HEX) + "/bmp280";
-```
-
-Así cada sensor/proyecto queda bien organizado.
-
-***
-
-## 8) Node‑RED: ver datos y mandar órdenes al ESP8266
+## 7) Node‑RED: ver datos y mandar órdenes al ESP8266
 
 Node‑RED es una herramienta para crear “programas” uniendo **bloques** (nodos) con cables. En este proyecto lo usamos como un “panel de control”: por un lado **recibe** los datos que envía el ESP8266 por MQTT (en formato JSON) y los muestra en una web; por otro lado **envía** órdenes al ESP8266 (por ejemplo encender/apagar el LED) publicando en un topic de control.
 
 <img width="1919" height="872" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a8373c5f-c2e4-4b7e-b7e3-7f3eabf9c83d" />
 
 
-### 8.1 Qué es MQTT en este proyecto
+### 7.1 Qué es MQTT en este proyecto
 
 MQTT funciona como un sistema de mensajería con “canales” llamados **topics**. Un dispositivo *publica* mensajes en un topic (por ejemplo, datos del sensor) y otro dispositivo *se suscribe* a ese topic para recibirlos.
 
@@ -257,7 +196,7 @@ Al inicio del programa, vemos los topics a los que se van a enviar los datos y a
 <img width="1552" height="538" alt="Screenshot_16" src="https://github.com/user-attachments/assets/20d34e44-19d4-4d18-b2fb-bd7d8b0d6887" />
 
 
-### 8.2 Nodos que verás en el flujo
+### 7.2 Nodos que verás en el flujo
 
 #### `mqtt in` (recibir mensajes)
 
@@ -432,7 +371,7 @@ Esta parte sirve para controlar el LED del ESP8266.
 - `mqtt out`: publica ese mensaje en el topic de control (por ejemplo `activate_led` o un topic específico del dispositivo). Se configura como el nodo `mqtt in`
 
 
-### 8.3 Cómo “entender” un flujo rápido
+### 7.3 Cómo “entender” un flujo rápido
 
 Para no perderse, sigue este orden:
 
@@ -448,6 +387,68 @@ Para no perderse, sigue este orden:
 - Añadir una variable nueva en `values` (y verla en el suscriptor MQTT).
 - Calibrar altitud: ajustar `SEALEVELPRESSURE_HPA` y comprobar cambios.
 - Diseñar un “dashboard” (Node-RED / Home Assistant / Grafana) con el topic.
+
+***
+
+## Anexo: Cómo modificar sensores y enviar otros datos
+
+La parte “educativa” del proyecto es que el alumnado pueda **cambiar el sensor** o **añadir más variables**. Estas son las zonas que deben tocar:
+
+### 1) Añadir una nueva librería / objeto del sensor
+
+- En la parte de `#include` (arriba).
+- Crear una instancia global (igual que `Adafruit_BMP280 bmp;`).
+
+
+### 2) Inicialización del sensor
+
+- En `setup()` o en una nueva función tipo `iniciaSensorX()`.
+- Patrón recomendado:
+    - `i2cScan();` (si es I2C)
+    - `sensor.begin(...)` y logs por Serial.
+
+
+### 3) Lectura y publicación (la parte clave)
+
+En `sendToBroker()`:
+
+- Sustituir estas lecturas:
+
+```cpp
+float tempC   = bmp.readTemperature();
+float pressHP = bmp.readPressure() / 100.0;
+float altM    = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+```
+
+- Y modificar el JSON en:
+
+```cpp
+JsonObject values = doc.createNestedObject("values");
+values["temperatura_c"] = tempC;
+values["presion_hpa"]   = pressHP;
+values["altitud_m"]     = altM;
+```
+
+
+#### Ejemplo: añadir “luz” (LDR analógico) o “humedad”
+
+- Lees el nuevo dato (p.ej. `int luz = analogRead(A0);`)
+- Lo añades al JSON:
+
+```cpp
+values["luz_raw"] = luz;
+```
+
+
+### 4) Cambiar el topic de publicación (opcional)
+
+También en `sendToBroker()`:
+
+```cpp
+String pub_topic = "orchard/" + TYPE_NODE + "/" + String(ESP.getChipId(), HEX) + "/bmp280";
+```
+
+Así cada sensor/proyecto queda bien organizado.
 
 ***
 
