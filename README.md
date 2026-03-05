@@ -77,8 +77,13 @@ Muchos módulos BMP280 traen pines **CSB** y **SDO**:
 ### 3.1 Arduino IDE y librerías
 En Arduino IDE (Library Manager) instala:
 - **Adafruit BMP280 Library**
+  <img width="283" height="335" alt="Screenshot_1" src="https://github.com/user-attachments/assets/6b11d460-e529-4686-8a65-f4bb8497915e" />
+
 - **ArduinoJson**
+  <img width="275" height="345" alt="Screenshot_2" src="https://github.com/user-attachments/assets/9398869a-a109-44e6-b39c-2a28cfe0212e" />
+
 - **PubSubClient**
+<img width="276" height="316" alt="Screenshot_3" src="https://github.com/user-attachments/assets/8c7517c4-06b1-4b96-a5eb-c9abf4f67af7" />
 
 ### 3.2 Instalar soporte ESP8266 (Board Manager)
 Para programar un ESP8266, Arduino IDE necesita el “core” del ESP8266.
@@ -99,6 +104,10 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 <img width="809" height="550" alt="URL del core ESP8266" src="https://github.com/user-attachments/assets/8a6d64c7-042d-4f54-9f75-841802146e36" />
 
 > Consejo: en GitHub, el icono de “dos cuadrados” permite copiar fácilmente el texto de un bloque.
+
+3) Una vez hayas copiado el enlace y le hayas dado a aceptar, nos vamos a `Boards Manager` en el menú de la izquiera o en `Tools-Boards-Boards Manager` e instalamos el soporte para `ESP8266`
+
+   <img width="279" height="320" alt="Screenshot_4" src="https://github.com/user-attachments/assets/fcc589ef-b762-4dc0-a14a-5e58897b98a4" />
 
 ---
 
