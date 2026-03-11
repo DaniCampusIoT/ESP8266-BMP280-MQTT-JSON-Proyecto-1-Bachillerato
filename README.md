@@ -51,7 +51,7 @@ El bus I2C usa 2 cables de datos:
 
 En ESP8266 suele usarse:
 - **D1 = GPIO5 = SCL**
-- **D2 = GPIO4 = SDA** [web:311][web:404]
+- **D2 = GPIO4 = SDA** 
 
 > Si tu placa es NodeMCU/Wemos, normalmente en la serigrafía ya aparece D1/D2.
 
@@ -67,7 +67,7 @@ En ESP8266 suele usarse:
 ### Pines extra del BMP280 (si tu placa los tiene)
 
 Muchos módulos BMP280 traen pines **CSB** y **SDO**:
-- **SDO** cambia la dirección I2C: suele ser `0x76` cuando SDO está a GND y `0x77` cuando está a 3V3. [web:414]
+- **SDO** cambia la dirección I2C: suele ser `0x76` cuando SDO está a GND y `0x77` cuando está a 3V3. 
 - **CSB** se usa en SPI; para I2C normalmente se deja como está en el módulo (si tu módulo da problemas, hay módulos donde ayuda fijarlo a 3V3, según diseño).
 
 ---
