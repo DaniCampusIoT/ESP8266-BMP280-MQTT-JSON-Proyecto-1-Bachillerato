@@ -160,165 +160,392 @@ Otros parámetros útiles:
 
 ---
 
-## 6) Topics MQTT y ejemplo de mensaje
+## 6) Node‑RED: montar tu primer flow para ver y enviar datos
 
-### 6.1 Topic de datos (dónde se publica el JSON)
+<img title="" src="img/Logo%20de%20node-RED.png" alt="Logo de node-RED.png" width="147" data-align="center">
 
-El código publica en un topic con esta forma:
+Vas a usar bloques o ***nodos*** interconectados en un flujo o ***flow*** para:
 
+1. Recibir los datos que envía tu ESP8266 por MQTT.
+2. Comprobar que esos datos llegan bien.
+3. Extraer solo la parte que nos interesa, por ejemplo la temperatura.
+4. Mostrar esos datos en una página web llamada **Dashboard**.
+5. Enviar órdenes al ESP8266, por ejemplo para encender o apagar un LED.
+
+Piensa en Node‑RED como una cadena de montaje:
+
+![Diagrama cadena de montaje Node-RED](img/cadena_montaje.png)
+
+- Un nodo **recibe** los datos.
+- Otro nodo los **muestra** para revisarlos.
+- Otro nodo los **transforma**.
+- Otro nodo los **enseña en pantalla**.
+- Y otro nodo puede **enviar órdenes** de vuelta al ESP8266.
+
+### 6.1 ¿Qué es Node‑RED?
+
+Node‑RED es una herramienta visual para crear programas uniendo bloques llamados **nodos** con líneas.  
+Cada nodo hace una tarea concreta, y al unir varios nodos construimos un **flow**, es decir, un flujo de trabajo.
+
+Una forma sencilla de entenderlo es pensar en piezas de LEGO:
+
+![Idea sobre Node-RED](img/que_es_nodered.png)
+
+- Cada pieza hace algo.
+- Tú decides en qué orden colocarlas.
+- Al final, todas juntas forman un sistema completo.
+
+En este proyecto, Node‑RED será nuestro **panel de control** del ESP8266.
+
+### 6.2 Antes de empezar
+
+Antes de abrir Node‑RED, comprueba lo siguiente:
+
+- El ESP8266 ya tiene MicroPython instalado.
+- El programa del ESP8266 ya está funcionando.
+- La placa ya se conecta al WiFi.
+- La placa ya está enviando datos por MQTT.
+
+Para eso, abre la consola de MicroPython (punto 5.6). Si en la consola del ESP8266 ves mensajes parecidos a estos:
+
+```text
+[wifi] connected
+[mqtt] publish OK
 ```
-orchard/<TYPE_NODE>/<chipIdHex>/bmp280
+
+entonces ya puedes seguir con este apartado.
+
+### 6.3 Qué es un flow
+
+Un **flow** es un conjunto de nodos conectados entre sí.
+
+![Flow Node-RED](img/que_es_flow.png)
+
+En esta práctica vamos a crear **dos flows**:
+
+#### Flow 1: recibir y mostrar datos
+
+![Flow 1 Node-RED](img/flow_1.png)
+
+Este flow servirá para recibir los datos del sensor y mostrarlos en una dirección web.
+
+```text
+mqtt in  →  debug  →  function  →  ui_gauge / ui_text
 ```
 
-- `TYPE_NODE`: categoría (por ejemplo `meteorologia`)
-- `chipIdHex`: identificador del ESP (para que cada placa tenga su “canal”)
-- `bmp280`: indica que son datos del sensor BMP280
+#### Flow 2: enviar órdenes al ESP8266
 
-> Si en tu código aparece otro sufijo distinto, puedes renombrarlo para que sea más claro (por ejemplo `bmp280`).
+![Flow 2 Node-RED](img/flow_2.png)
 
-### 6.2 Ejemplo de payload JSON (lo que viaja por MQTT)
+Este flow servirá para mandar órdenes desde Node‑RED a la placa.
 
-Un ejemplo de mensaje sería:
+```text
+inject o ui_switch  →  mqtt out
+```
+
+### 6.4 Una pieza clave: Entendiedo el protocolo MQTT (Message Queuing Telemetry Transport)
+
+![MQTT](img/MQTT_1.jpg)
+
+![MQTT2](img/MQTT_2.jpg)
+
+#### Qué es MQTT en esta práctica
+
+![MQTT](img/diagrama_mqtt.png)
+
+MQTT es un sistema de mensajería.
+
+Los dispositivos envían y reciben mensajes usando “canales” llamados **topics**.
+
+Por ejemplo:
+
+- Un topic puede servir para enviar los datos del sensor.
+- Otro topic distinto puede servir para enviar órdenes.
+
+Cada topic es como un buzón:
+
+- A un buzón de entrada llegan los datos del BMP280.
+- De un buzón de salida salen órdenes para activar 0 desactivar algo (en este caso un LED).
+
+Con Node‑RED puedes dirigirte al buzón indicado y recoger o dejar mensajes.
+
+### 6.5 Abrir Node‑RED y reconocer la pantalla
+
+Cuando abras Node‑RED verás tres zonas principales:
+
+![noder-red](img/espacios_trabajo_nodered.png)
+
+#### 1) Paleta de nodos
+
+Suele estar en la parte izquierda.
+Aquí aparecen los bloques que puedes arrastrar al espacio de trabajo.
+
+Por ejemplo, verás nodos como:
+
+- `inject`
+
+![inject](img/inject.png)
+
+- `debug`
+
+![debug](img/debug_nodo.png)
+
+- `function`
+
+![function](img/function.png)
+
+- `json`
+
+![json](img/json.png)
+
+- `mqtt in`
+
+![mqttin](img/mqttin.png)
+
+- `mqtt out`
+
+![mqttout](img/mqttout.png)
+
+- `ui_text`
+
+![text](img/text.png)
+
+- `ui_gauge`
+
+![gauge](img/gauge.png)
+
+- `ui_switch`
+
+![switch](img/switch.png)
+
+
+#### 2) Espacio de trabajo
+
+Está en el centro.
+Aquí es donde colocas los nodos y los conectas con líneas.
+
+#### 3) Barra lateral derecha
+
+Aquí aparecen varias pestañas con información y herramientas útiles.
+
+La más importante al principio es la pestaña **Debug**, porque ahí verás los mensajes que recibe tu flow.  
+
+![debug](img/debug.png)
+
+Esa pestaña te ayudará a comprobar si los datos están llegando bien desde MQTT y a entender qué contenido tiene `msg.payload`.
+
+Más adelante también usarás otras zonas de la interfaz, como la del **Dashboard**, pero al principio lo más importante es aprender a mirar el panel **Debug** para revisar qué está pasando.
+
+#### 4) Resumen rápido para empezar bien
+
+Antes de arrastrar nodos, haz esto:
+
+1. Abre Node‑RED.
+2. Crea un flow nuevo con el botón **`+`**.
+
+![crearflow](img/add_flow.png)
+
+Cuando lo tengas, vamos a configurarlo:
+
+![configflow](img/flow_config.png)
+
+1. Ponle un **nombre** claro.
+2. Añade una **descripción** breve.
+
+A partir de aquí, empieza a construir el flow en el espacio central. Recuerda usar la pestaña **Debug** para comprobar que todo funciona.
+
+De esta forma trabajarás de manera más ordenada y te resultará mucho más fácil entender qué hace cada parte del proyecto.
+
+### 6.6 Primer objetivo: comprobar que llegan datos
+
+Antes de construir paneles bonitos, medidores o botones, lo primero es comprobar que los datos **de verdad están llegando**.
+
+Para eso vamos a crear el flow más simple posible:
+
+```text
+mqtt in  →  debug
+```
+
+![mqttdebug](img/mqtt_debug.png)
+
+Este primer flow no transforma ni muestra nada en el Dashboard. Solo sirve para asegurarnos de que Node‑RED está recibiendo mensajes del ESP8266.
+
+### 6.7 Primer nodo: `mqtt in`
+
+Arrastra un nodo `mqtt in` al espacio de trabajo.
+
+Ahora haz doble clic sobre él para configurarlo.
+
+![mqttconfig](img/mqttin_config.png)
+
+#### Qué debes configurar
+
+##### A) Server
+
+Aquí debes indicar el servidor MQTT, también llamado **broker**.
+
+El broker es el “repartidor” de mensajes.
+Si el broker no es correcto, Node‑RED no recibirá nada.
+
+##### B) Topic
+
+Aquí debes escribir el topic donde publica tu ESP8266.
+
+Ejemplo:
+
+```text
+cabrerapinto/meteorologia/ecfabca5f251/bmp280
+```
+
+Cada placa o cada grupo puede tener un topic diferente, así que copia exactamente el tuyo.
+
+#### Consejo útil
+
+Si al principio no recuerdas el topic exacto, a veces puedes usar un topic más general con `#`, por ejemplo:
+
+```text
+cabrerapinto/#
+```
+
+Eso significa: “escucha cualquier subtopic que empiece por `cabrerapinto/`”.
+
+**Pero cuidado:** eso está bien para pruebas, pero cuando ya funcione, lo mejor es usar el topic exacto de tu ESP8266 para no mezclar tus mensajes con los de otros compañeros.
+
+### 6.8 Segundo nodo: `debug`
+
+Ahora arrastra un nodo `debug` y conéctalo a la salida del nodo `mqtt in`.
+
+El nodo `debug` sirve para mostrar en la barra lateral derecha el contenido de los mensajes que recibe.
+
+Es muy parecido a usar `print()` en Python:
+
+- no cambia el mensaje,
+- no lo arregla,
+- solo te enseña qué está pasando.
+
+#### Qué debes hacer ahora
+
+1. Conecta `mqtt in` con `debug`.
+2. Pulsa el botón **Deploy** arriba a la derecha.
+
+![btndeploy](img/flow_basico.png)
+
+4. Mira la pestaña **Debug** en la barra lateral.
+
+![datos](img/debug_con_datos.png)
+
+Si todo está bien, deberían empezar a aparecer mensajes.
+
+**NOTA IMPORTANTE**: Cada vez que realicemos un cambio, tenemos que darle a **Deploy** para que todo funcione.
+
+### 6.9 Qué aspecto puede tener el mensaje
+
+Un mensaje típico puede ser parecido a este:
 
 ```json
 {
-  "esp": { "ip": "10.0.0.15", "rssi": -67 },
-  "sensor": "BMP280",
-  "timestamp": 34795,
-  "values": {
-    "temperatura_c": 22.31,
-    "presion_hpa": 1012.84,
-    "altitud_m": 12.7
-  }
-}
-```
-
-Cómo leerlo:
-
-- `esp.ip`: la IP del ESP en la red WiFi.
-- `esp.rssi`: la “fuerza” de la señal WiFi (más cerca de 0 es mejor; por ejemplo -50 mejor que -80).
-- `timestamp`: tiempo desde que arrancó el ESP (en milisegundos).
-- `values.*`: las mediciones del sensor.
-
-
-
-***
-
-## 7) Node‑RED: ver datos y mandar órdenes al ESP8266
-
-Node‑RED es una herramienta para crear “programas” uniendo **bloques** (nodos) con cables. En este proyecto lo usamos como un “panel de control”: por un lado **recibe** los datos que envía el ESP8266 por MQTT (en formato JSON) y los muestra en una web; por otro lado **envía** órdenes al ESP8266 (por ejemplo encender/apagar el LED) publicando en un topic de control.
-
-<img width="1919" height="872" alt="Screenshot_1" src="https://github.com/user-attachments/assets/a8373c5f-c2e4-4b7e-b7e3-7f3eabf9c83d" />
-
-
-### 7.1 Qué es MQTT en este proyecto
-
-MQTT funciona como un sistema de mensajería con “canales” llamados **topics**. Un dispositivo *publica* mensajes en un topic (por ejemplo, datos del sensor) y otro dispositivo *se suscribe* a ese topic para recibirlos.
-
-- Ejemplo de topic de datos: `.../bmp280` (aquí llegan temperatura y presión).
-- Ejemplo de topic de control: `.../activate_led` (aquí mandas ON/OFF).
-
-Al inicio del programa, vemos los topics a los que se van a enviar los datos y a los que nos hemos suscrito para poder controlar lo que queramos. Podemos crear el nuestro:
-
-<img width="1552" height="538" alt="Screenshot_16" src="https://github.com/user-attachments/assets/20d34e44-19d4-4d18-b2fb-bd7d8b0d6887" />
-
-
-### 7.2 Nodos que verás en el flujo
-
-#### `mqtt in` (recibir mensajes)
-
-Este nodo se conecta al broker MQTT y se **suscribe** a un topic (un “canal”). Cuando llega un mensaje por ese canal, el nodo lo envía hacia la derecha para que el resto del flujo lo procese (por ejemplo, para leer el JSON y mostrarlo en el Dashboard).
-
-**Un topic con `#` (comodín / “escuchar todo lo que cuelga de aquí”)**
-La imagen del topic con `#` significa: “escucha **muchos topics a la vez** que empiezan igual”.
-
-<img width="799" height="79" alt="Screenshot_2" src="https://github.com/user-attachments/assets/becd40f9-43ab-4e2b-9cc4-174ac6be759a" />
-
-Ejemplo: si pones `cabrerapinto/#`, Node‑RED recibirá mensajes de **cualquier** subtopic que empiece por `cabrerapinto/…` (sirve para pruebas y depuración, porque ves todo lo que está enviando la red).
-
-**Un topic más específico (escuchar solo un dispositivo o un sensor)**
-En la imagen del topic específico se ve un camino más largo (con varias carpetas) que identifica mejor el origen: zona/proyecto → tipo de nodo → ID del dispositivo → sensor.
-
-<img width="1455" height="337" alt="Screenshot_3" src="https://github.com/user-attachments/assets/b0e56fd3-da4e-4c0c-a8f6-1673ca40f341" />
-
-Esto hace que Node‑RED reciba **solo** los mensajes de ese sensor/dispositivo concreto (por ejemplo, el BMP280 de un ESP en particular), evitando mezclar datos de otros compañeros.
-
-**Configuración del nodo `mqtt in` (elegir servidor y topic correcto)**
-En la ventana de configuración se hacen dos cosas clave:
-
-<img width="717" height="616" alt="Screenshot_4" src="https://github.com/user-attachments/assets/d265b629-e082-48d8-a15e-58c31b4e2064" />
-
-1) **Servidor (broker)**: eliges el “servidor de mensajes” al que te conectas (tiene IP y puerto). Si eliges otro broker, no verás tus mensajes.
-2) **Topic**: copias/pegas el topic exacto desde el que quieres recibir datos (en tu caso, el que publica tu ESP). Importante: cada alumno/grupo puede tener un topic distinto, así que hay que mirar el vuestro y poner ese.
-
-
-
-#### `debug` (ver qué está llegando)
-
-El nodo `debug` muestra en la barra derecha el contenido del mensaje (por ejemplo `msg.payload`). Es el mejor nodo para comprobar si el JSON llega bien y si el topic es el correcto.
-
-<img width="1914" height="675" alt="Screenshot_5" src="https://github.com/user-attachments/assets/d36b938e-a2be-42f6-af77-7592bcdaa76c" />
-
-Durante las prácticas conviene activar el debug al principio, haciendo click en el botón verde que se muestra en la imagen, luego desactivarlo para que no se llene la pantalla de depuración.
-
-#### `function` (extraer un dato del JSON)
-
-El nodo `function` te deja escribir un poco de JavaScript para transformar el mensaje. 
-
-<img width="1569" height="383" alt="Screenshot_6" src="https://github.com/user-attachments/assets/276c2152-20ee-4ba0-a69a-3579525f934a" />
-
-Aquí lo usamos para “pasar de JSON completo a un dato”, por ejemplo, para quedarnos solo con la temperatura. 
-
-<img width="676" height="708" alt="Screenshot_8" src="https://github.com/user-attachments/assets/17d0ebe5-fbeb-49db-8c00-80c6bb32a13a" />
-
-La idea es simple: el JSON llega en `msg.payload`, tú lees la ruta del dato y después pones ese dato como nuevo `msg.payload` (así el siguiente nodo recibe solo un número).
-
-**Caso de uso**: Obtener la temperatura del BMP280:
-
-```js
-var p = msg.payload;              // JSON completo
-msg.payload = p.sensor.bmp280.t_c; // sacar temperatura
-return msg;
-```
-
-A continuación, vamos a extraer la temperatura del mensaje JSON, paso a paso:
-
-**1) Llega un mensaje MQTT con un JSON** dentro de `msg.payload`. Un ejemplo simple puede ser:
-
-```json
-{
-  "esp": { "ip": "10.53.151.83", "rssi": -62 },
+  "esp": {
+    "ip": "10.53.151.83",
+    "rssi": -62
+  },
   "sensor": {
-    "bmp280": { "t_c": 22.45, "p_hpa": 1012.80 }
+    "bmp280": {
+      "t_c": 22.45,
+      "p_hpa": 1012.80
+    }
   }
 }
 ```
 
-**2) Paso recomendado: mira el JSON con un `debug`**
-Conecta un nodo `debug` justo después del `mqtt in` y expande el árbol: `payload → sensor → bmp280 → t_c`. El panel Debug te ayuda a entender la estructura del mensaje.
+Vamos a entenderlo paso a paso.
 
-**3) En un nodo `function`, guarda el JSON en una variable**
+#### Nivel 1: el mensaje completo
+
+Tiene dos partes grandes:
+
+- `esp`
+- `sensor`
+
+#### Nivel 2: la parte `esp`
+
+Dentro de `esp` hay información sobre la placa, por ejemplo:
+
+- `ip`
+- `rssi`
+
+#### Nivel 2: la parte `sensor`
+
+Dentro de `sensor` hay otra parte llamada `bmp280`.
+
+#### Nivel 3: la parte `bmp280`
+
+Dentro de `bmp280` están los datos que nos interesan:
+
+- `t_c` → temperatura en grados Celsius
+- `p_hpa` → presión en hPa
+
+### 6.10 Cómo leer el JSON sin perderse
+
+Una forma fácil de entender el JSON es imaginar **cajas dentro de cajas**.
+
+![jsonformat](img/json_format.png)
+
+- Hay una caja grande llamada `sensor`.
+- Dentro de esa caja hay otra caja llamada `bmp280`.
+- Dentro de esa caja hay una etiqueta llamada `t_c`.
+
+Por eso la ruta hasta la temperatura es:
 
 ```js
-var p = msg.payload;   // p ahora es el JSON completo
+sensor.bmp280.t_c
 ```
 
-**4) Escribe la “ruta” hasta el dato que quieres**
-
-- La temperatura está en: `p.sensor.bmp280.t_c`
+Y como todo eso está dentro de `msg.payload`, en Node‑RED la ruta completa será:
 
 ```js
-var temp = p.sensor.bmp280.t_c;
+msg.payload.sensor.bmp280.t_c
 ```
 
-**5) Deja ese valor como `msg.payload` para el siguiente nodo (gauge/texto)**
+### 6.11 Tercer nodo: `function` para extraer la temperatura
 
-```js
-msg.payload = temp;
-return msg;
+![flowfunction](img/flow_funcion.png)
+
+
+Ahora vamos a crear un nodo `function` para quedarnos solo con la temperatura.
+
+#### Paso 1: arrastrar el nodo
+
+Arrastra un nodo `function` al espacio de trabajo.
+
+#### Paso 2: conectarlo
+
+Conéctalo después del `mqtt in`.
+
+Puedes dejar también el `debug` conectado en paralelo para seguir viendo el mensaje completo.
+
+Por ejemplo:
+
+```text
+mqtt in ──→ debug
+   │
+   └──→ function
 ```
 
-**Código completo del `function` (temperatura):**
+#### Paso 3: abrir la configuración
+
+Haz doble clic sobre el nodo `function`.
+
+![funcionconfig](img/function_config.png)
+
+Ponle un nombre, por ejemplo:
+
+```text
+Extraer temperatura
+```
+
+#### Paso 4: escribir el código
+
+Escribe este código:
 
 ```js
 var p = msg.payload;
@@ -326,86 +553,541 @@ msg.payload = p.sensor.bmp280.t_c;
 return msg;
 ```
 
-> Si la ruta no existe (por ejemplo el JSON no trae `bmp280`), verás `undefined`. En ese caso revisa la estructura en el `debug` y ajusta la ruta.
+Ahora vamos a entenderlo **línea por línea**.
 
-#### `ui_text` y `ui_gauge` (mostrarlo en una web: Dashboard)
+### 6.12 Explicación línea por línea del código de temperatura
 
-Estos nodos pertenecen al **Dashboard**, que es una página web (tipo “panel de control”) donde ves los datos del ESP8266 en tiempo real: si el ESP publica un nuevo valor por MQTT, aquí se actualiza automáticamente.
+#### Línea 1
 
-<img width="1919" height="878" alt="Screenshot_10" src="https://github.com/user-attachments/assets/ccf257fb-0afe-4be1-be63-dafaf1fc131c" />
+```js
+var p = msg.payload;
+```
 
-En esta captura se ve el resultado final: varios “widgets” (bloques) colocados en la web. Normalmente:
+Esta línea significa:
 
-- Arriba aparecen textos con información del ESP (por ejemplo **IP**, **RSSI**, o “Online/Offline”).
-- Abajo aparecen medidores tipo reloj/contador para los sensores (por ejemplo **Temperatura** y **Presión**).
+> “voy a guardar el contenido de `msg.payload` en una variable llamada `p`”.
 
-La idea es: Node-RED recibe el JSON, extrae valores, y el Dashboard los muestra de forma visual para que sea fácil entenderlos de un vistazo.
+¿Por qué hacemos esto?
 
-- `ui_text`: muestra texto (por ejemplo IP, RSSI o “Online/Offline”).
-- `ui_gauge`: muestra un número como un medidor (por ejemplo temperatura o presión).
+Porque `msg.payload` es más largo de escribir.
+Si lo guardamos en `p`, el código queda más limpio y más fácil de leer.
 
-Esta ventana es donde decides **cómo y dónde** se verá el dato en la web.
+Es como si dijéramos:
 
-<img width="626" height="814" alt="Screenshot_11" src="https://github.com/user-attachments/assets/e512e9e1-dced-42aa-9725-67f93915c458" />
+> “a partir de ahora, llamaré `p` a todo este paquete de datos”.
 
-Cosas importantes que hay que entender:
+#### Línea 2
 
-- **Group (Grupo):** es “la caja” o sección del Dashboard donde se colocará el widget.
-Piensa en el Dashboard como una página dividida en bloques grandes (grupos). Si eliges otro grupo, el widget aparecerá en otra zona.
-- **Label (Etiqueta/Título):** el nombre que verás al lado o encima del widget (por ejemplo “IP”, “RSSI”, “Temperatura”).
-- **Format (Formato del valor):** es cómo Node-RED “imprime” el valor que le llega en `msg.payload`.
-    - En `ui_text` suele ponerse `{{msg.payload}}` para mostrar el texto/número tal cual llega.
-    - En `ui_gauge` normalmente se usa `{{value}}` (el gauge representa el valor numérico recibido).
-Si el formato está mal, puede que no se vea nada o que salga “undefined”.
-- **Units / min / max (en `ui_gauge`):** aquí defines la unidad (ºC, hPa…) y los límites del medidor. Esto **no cambia el dato real**; solo cambia cómo se representa en la web.
+```js
+msg.payload = p.sensor.bmp280.t_c;
+```
 
-Aquí es donde se organiza toda la web del Dashboard.
+Esta es la línea más importante.
 
-<img width="388" height="475" alt="Screenshot_12" src="https://github.com/user-attachments/assets/f8f07f3d-e418-40f5-b27d-87793bd9e791" />
+Lo que hace es:
 
+1. entrar en `p`,
+2. buscar la parte `sensor`,
+3. luego la parte `bmp280`,
+4. luego la etiqueta `t_c`,
+5. y colocar ese valor como nuevo `msg.payload`.
 
-1. En Node-RED mira la barra lateral derecha.
-2. Busca la sección de **Dashboard** (icono típico de “panel”).
-3. Ahí verás la estructura: **Tabs** y **Groups**.
+Si la temperatura era `22.45`, entonces después de esta línea `msg.payload` ya no será el JSON completo, sino solo:
 
-**Qué significa cada cosa:**
+```text
+22.45
+```
 
-- **Tab (Pestaña):** como una pestaña en una web. Si tienes varias, puedes tener “Página principal”, “Grupo 1”, “Sensores”, etc. Cada tab es una “pantalla” distinta.
-- **Group (Grupo):** son secciones dentro de una pestaña. Sirven para ordenar: por ejemplo un grupo para “Información del ESP”, otro para “BMP280”, otro para “Control LED”.
-- **Link (Enlace):** un botón/enlace del Dashboard para saltar a otra pestaña o a otra parte. No es obligatorio para que funcione, pero ayuda a navegar.
+![debug_temp](img/debug_temp.png)
 
-**Reglas de clase (para no liarse con widgets)**
+Es como si tuvieras una mochila llena de cosas y sacaras solo el **termómetro**, dejando lo demás aparte.
 
-- **Regla 1:** Primero crea (o elige) un **Tab**, luego crea (o elige) un **Group**, y por último en cada `ui_*` selecciona su **Group**. Si no asignas Group, el widget no aparece.
-- **Regla 2:** Un widget debe recibir **un solo valor**. Si quieres mostrar temperatura y presión, usa **dos** widgets (dos `ui_gauge`).
-- **Regla 3:** Si no aparece nada, revisa en este orden: `mqtt in` (topic correcto) → `debug` (llega JSON) → `function` (ruta correcta) → `ui_*` (Group + Format correctos).
+#### Línea 3
 
-#### `inject`, `ui_switch` y `mqtt out` (mandar órdenes al ESP8266)
+```js
+return msg;
+```
 
-Esta parte sirve para controlar el LED del ESP8266.
+Esta línea significa:
 
-<img width="1738" height="396" alt="Screenshot_13" src="https://github.com/user-attachments/assets/e17c4d3d-4880-428c-99c4-5d590c8ece4d" />
+> “ya he preparado el mensaje; ahora envíalo al siguiente nodo”.
 
+Si olvidas esta línea, el mensaje no seguirá avanzando por el flow.
 
-- `inject`: botones que envían un mensaje fijo, por ejemplo `"ON"` o `"OFF"`. Aquí podemos seleccionar el tipo de valor que "inyectamos" o enviamos al topic. En este caso, son valores boleanos, es decir, `true` o `false`, pero pueden ser valores numéricos, cadenas de texto...
+### 6.13 Qué hacer si aparece `undefined`
 
-<img width="693" height="783" alt="Screenshot_15" src="https://github.com/user-attachments/assets/7b634726-464a-4b08-9167-9f0103570371" />
+Si en vez de un número aparece `undefined`, significa que la ruta no coincide con el mensaje real.
 
-- `ui_switch`: un interruptor en la web que envía `true/false` cuando lo cambias. Este objeto se crea en el dashboard y como el botón `inject`, permite enviar comandos cuando se activa.
+![undefinded](img/undefinde.png)
 
-<img width="867" height="682" alt="Screenshot_14" src="https://github.com/user-attachments/assets/fdb95f5b-923d-40ff-988b-591e7044be17" />
+Puede pasar porque:
 
-- `mqtt out`: publica ese mensaje en el topic de control (por ejemplo `activate_led` o un topic específico del dispositivo). Se configura como el nodo `mqtt in`
+- el mensaje no trae `sensor`,
+- o no trae `bmp280`,
+- o el nombre es distinto,
+- o estás intentando acceder a un campo que no existe.
 
+En ese caso, vuelve al nodo `debug` y mira bien cómo llega el JSON.
 
-### 7.3 Cómo “entender” un flujo rápido
+**Regla de oro:**
+primero mirar el `debug`, después escribir la ruta.
 
-Para no perderse, sigue este orden:
+### 6.14 Y si el mensaje llega como texto
 
-- Empieza por los `mqtt in`: ¿qué topic están escuchando? (ahí entra la información).
-- Activa un `debug`: mira qué hay dentro de `msg.payload` (ahí ves el JSON real).
-- Revisa los `function`: cada uno debería sacar **un dato** y dejarlo como `msg.payload` para el Dashboard.
-- Al final mira los nodos `ui_*`: eso es lo que verás en la web del Dashboard.
+A veces el mensaje MQTT no llega como un objeto ya organizado, sino como texto.
+
+![mqttintxt](img/mqttin_texto.png)
+
+Por ejemplo, podrías ver algo así:
+
+```text
+"{\"sensor\":{\"bmp280\":{\"t_c\":22.45}}}"
+```
+
+Eso significa que el JSON está “metido en una cadena de texto”.
+
+Si te pasa eso, añade un nodo `json` entre `mqtt in` y `function`:
+
+![str2json](img/json_format_flow.png)
+
+```text
+mqtt in  →  json  →  function
+```
+
+El nodo `json` convierte ese texto en un objeto que ya se puede recorrer por dentro.
+
+#### Cómo saber si necesitas el nodo `json`
+
+Por defecto, el nodo `mqtt in` recibe los mensajes y los formatea a JSON. Aquí te van algunas pistas para ver si es necesario o no:
+
+- Si en `debug` ves un árbol desplegable con campos, normalmente no hace falta.
+- Si ves una sola línea llena de comillas y barras `\`, entonces sí conviene usarlo.
+
+### 6.15 Cómo crear y organizar el Dashboard
+
+El **Dashboard** es la página web donde verás los datos de forma visual.  
+Ahí puedes colocar textos, medidores, interruptores, botones y otros elementos.
+
+Para organizarlo todo, el Dashboard usa **tres niveles** que debes crear **en este orden**:
+
+![dashboard](img/DASHBOARD.png)
+
+#### 1) Tab (Pestaña/Página)
+
+Una **Tab** es como una pestaña de navegador. Cada Tab es una página distinta del Dashboard.
+
+**Cómo crear una Tab:**
+
+1. En Node‑RED, mira la **barra lateral derecha**.
+2. Busca la pestaña **Dashboard** (icono de panel o monitor).
+
+![irdashboard](img/ir_a_dashboard.png)
+
+3. Pulsa el **+** junto a **"Tabs"**.
+
+![creatab](img/crear_tab.png)
+
+Vamos a configurar nuestro tablero:
+
+![iraconfigtab](img/edit_tab.png)
+
+4. Escribe el nombre, por ejemplo: `Mi estación meteorológica`.
+
+![tabconfig](img/tab_config.png)
+
+5. Pulsa **Update**.
+
+**Ejemplos de Tabs útiles:**
+
+- `Mi estación meteorológica` (página principal)
+- `Sensores` 
+- `Control`
+- `Logs`
+
+Para acceder a los tableros que se crean, en el Dashboard hay que darle click a las 3 lineas horizontales que hay en la esquina superior izquierda:
+
+![accesotabs](img/Acceso_tabs.png)
+
+#### 2) Group (Caja/Sección)
+
+Un **Group** es una caja o bloque **dentro** de una Tab. Sirve para agrupar widgets relacionados.
+
+**Cómo crear un Group:**
+
+1. En la misma pestaña **Dashboard** (barra lateral derecha).
+2. Pulsa el **+ Group** junto a tu Tab `Mi estación meteorológica`.
+
+![addgroup](img/add_group.png)
+
+3. Escribe el nombre del grupo, por ejemplo: `Estado`.
+
+![groupconfig](img/group_config.png)
+
+4. Selecciona el **With** (normalmente `col-6` o `col-12`). Esto es el ancho que quieres que ocupe tu grupo de objetos en el Dashboard.
+5. Pulsa **Update**.
+
+**Ejemplo de organización dentro de `ESP8266`:**
+
+```
+Tab: ESP8266
+├── Group: Estado        ← IP, RSSI, Online/Offline
+├── Group: BMP280       ← Temperatura, Presión
+└── Group: Control LED  ← Interruptor del LED
+```
+
+#### 3) Widget (Elemento visual)
+
+Un **Widget** es cada elemento que ves en la web: texto, medidor, botón, etc.
+
+**Regla de oro: nunca asignes un widget sin antes tener Tab y Group.**
+
+**Cómo configurar un widget (ejemplo con `ui_gauge`):**
+
+![flowgauge](img/flow_con_gauge.png)
+
+1. Arrastra `ui_gauge` al espacio de trabajo.
+
+![arrastrogauge](img/arrastrar_uigauge.png)
+
+2. Haz **doble clic** sobre él.
+
+![gaugeconfig](img/ui_gauge_config.png)
+
+3. En **Group**, **selecciona** el grupo que creaste (ej: `BMP280`).
+4. **Label**: `Temperatura`
+5. **Units**: `ºC`
+6. **Min**: `0` / **Max**: `50`
+7. Pulsa **Done**.
+
+#### **Orden correcto para no perderse**
+
+```
+1️⃣ Crear Tab → 2️⃣ Crear Group → 3️⃣ Configurar Widget
+```
+
+**Si haces esto al revés, el widget NO aparecerá.**
+
+#### **Ejemplo práctico completo**
+
+**Tu primera Tab y Groups:**
+
+```
+Tab: ESP8266
+├── Group: Estado (col-6)
+│   ├── ui_text: IP
+│   └── ui_text: RSSI
+├── Group: BMP280 (col-6)
+│   ├── ui_gauge: Temperatura
+│   └── ui_gauge: Presión
+└── Group: Control (col-12)
+└── ui_switch: LED
+```
+
+#### **Cómo ver el Dashboard**
+
+1. **Deploy** los cambios.
+2. En la barra lateral derecha, pestaña **Dashboard**.
+3. Puedes darle al icono que tiene forma de cuadrado con una flecha saliendo.
+
+![iradashboard](img/ver_dashboard.png)
+
+También puedes compiar la **URL** que aparece en Node-Red (algo como `http://[TU DIRECCIÓN IP]:1880/ui`).
+
+4. Ábrela en una **pestaña nueva** del navegador.
+
+#### **Errores típicos**
+
+| Problema              | Solución                                             |
+| --------------------- | ---------------------------------------------------- |
+| **Widget no aparece** | No asignaste **Group** o el Group no tiene **Tab**   |
+| **Todo en una línea** | Cambia el **layout** del Group a `col-6` o `col-12`  |
+| **No se actualiza**   | Revisa que `msg.payload` sea un **número** (no JSON) |
+| **URL no funciona**   | Comprueba que **Deploy** esté hecho                  |
+
+#### **Consejo para clase**
+
+**Crea siempre esta estructura base:**
+
+```
+Tab: ESP8266
+├── Group: Estado
+├── Group: Sensores
+└── Group: Control
+```
+
+Y asigna **todos** tus widgets a uno de esos tres Groups. Así nunca te pierdes.
+
+### 6.16 Mostrar la temperatura con `ui_gauge`
+
+Una vez que el nodo `function` ya entrega solo un número, podemos mostrarlo en el Dashboard con un medidor.
+
+Para eso vamos a usar el nodo `ui_gauge`.
+
+#### Paso 1
+
+Arrastra un nodo `ui_gauge`.
+
+#### Paso 2
+
+Conéctalo a la salida del nodo `function`.
+
+#### Paso 3
+
+Haz doble clic sobre él para configurarlo.
+
+#### Paso 4
+
+Configura estos campos:
+
+- **Group**: el grupo donde aparecerá el medidor.
+- **Label**: por ejemplo `Temperatura`.
+- **Units**: por ejemplo `ºC`.
+- **Min**: por ejemplo `0`.
+- **Max**: por ejemplo `50`.
+
+#### Qué debes entender
+
+Este nodo necesita recibir un número.
+
+Si le mandas un JSON completo, no sabrá qué hacer con él. Por eso antes usamos el nodo `function`: para dejar solo la temperatura.
+
+### 6.17 Mostrar otros datos con `ui_text`
+
+Además de la temperatura, a veces interesa enseñar datos como la IP o el RSSI.
+
+![flowtext](img/flow_con_texto.png)
+
+Para eso va muy bien `ui_text`.
+
+#### Ejemplo: mostrar la IP
+
+Primero crea un nodo `function` con este código:
+
+```js
+var p = msg.payload;
+msg.payload = p.esp.ip;
+return msg;
+```
+
+Luego conecta ese `function` a un nodo `ui_text`.
+
+En `ui_text` puedes configurar:
+
+- **Label**: `IP`
+- **Format**:
+
+```text
+{{msg.payload}}
+```
+
+Así, en vez de ver un medidor, verás un texto en la web.
+
+### 6.18 Extraer la presión
+
+Ahora vamos a hacer exactamente lo mismo, pero con la presión.
+
+Crea otro nodo `function` con este código:
+
+```js
+var p = msg.payload;
+msg.payload = p.sensor.bmp280.p_hpa;
+return msg;
+```
+
+La lógica es la misma que con la temperatura:
+
+- entras en `sensor`,
+- luego en `bmp280`,
+- luego en `p_hpa`,
+- y te quedas solo con la presión.
+
+Después puedes conectarlo a otro `ui_gauge`.
+
+#### Configuración sugerida del medidor de presión
+
+- **Label**: `Presión`
+- **Units**: `hPa`
+- **Min**: `900`
+- **Max**: `1100`
+
+### 6.19 Montar el primer flow completo
+
+Una versión sencilla del flow puede quedar así:
+
+![flowcompleto](img/flow_con_gauge.png)
+
+#### Para temperatura
+
+```text
+mqtt in  →  debug
+   │
+   └──→ function (temperatura)  →  ui_gauge
+```
+
+#### Para presión
+
+```text
+mqtt in  →  function (presión)  →  ui_gauge
+```
+
+#### Para IP
+
+```text
+mqtt in  →  function (ip)  →  ui_text
+```
+
+### 6.20 Organización recomendada del Dashboard
+
+Para que no quede todo mezclado, puedes organizar el Dashboard así:
+
+#### Tab
+
+`Mi estación meteorológica`
+
+#### Groups
+
+- `Estado`
+- `BMP280`
+- `Control`
+
+#### Dentro de `Estado`
+
+- `ui_text` con la IP
+- `ui_text` con el RSSI
+
+#### Dentro de `BMP280`
+
+- `ui_gauge` con la temperatura
+- `ui_gauge` con la presión
+
+#### Dentro de `Control`
+
+- `ui_switch` para el LED
+
+### 6.21 Ver el Dashboard
+
+Cuando ya tengas los nodos colocados y configurados:
+
+1. pulsa **Deploy**,
+2. comprueba que los nodos MQTT aparecen como conectados,
+3. abre la página del Dashboard.
+
+Si todo está bien, deberías ver cómo los valores cambian conforme el ESP8266 va publicando datos.
+
+### 6.22 Enviar órdenes al ESP8266
+
+Una vez que ya sabes recibir datos, vamos a mandar una orden.
+
+Para eso haremos un flow muy sencillo.
+
+### 6.23 Opción A: usar `inject`
+
+![outinject](img/out_con_inject.png)
+
+El nodo `inject` sirve para lanzar un mensaje manualmente.
+
+Es como un botón de prueba.
+
+#### Qué debes hacer
+
+1. Arrastra un nodo `inject`.
+2. Haz doble clic sobre él.
+
+![injectconfig](img/inject_opciones.png)
+
+3. Configura el valor como `true` o `false`, según lo que espere tu programa.
+4. Arrastra un nodo `mqtt out`.
+5. Conecta `inject` con `mqtt out`.
+
+![mqttoutconfig](img/mqttout_config.png)
+
+7. En `mqtt out`, selecciona el Server correcto.
+8. Escribe el topic de control del ESP8266.
+9. Pulsa **Deploy**.
+
+Ahora, cada vez que pulses el botón del nodo `inject`, estarás enviando una orden MQTT.
+
+![injectbtn](img/inject_boton.png)
+
+### 6.24 Opción B: usar `ui_switch`
+
+![outswitch](img/out_con_switch.png)
+
+Si quieres controlar la placa desde el Dashboard, usa `ui_switch`.
+
+#### Qué debes hacer
+
+1. Arrastra un nodo `ui_switch`.
+
+![swchco](img/arrastro_switch.png)
+
+2. Asígnalo a una **Tab** y un **Group**.
+
+![swchconfig](img/switch_config.png)
+
+3. Indicale qué tipo de datos quieres que envíe cuando lo pulses.
+4. Conéctalo a un nodo `mqtt out`.
+5. Configura `mqtt out` con el topic de control correcto.
+6. Pulsa **Deploy**.
+
+Ahora verás un interruptor en la web.
+
+![switchdash](img/switch_en_dashboard.png)
+
+Cuando lo cambies, Node‑RED enviará una orden al ESP8266.
+
+### 6.25 Cómo revisar un flow sin perderse
+
+Si algo no funciona, sigue siempre este orden:
+
+1. **`mqtt in`**: comprueba que el broker y el topic están bien.
+2. **`debug`**: mira si realmente llegan mensajes.
+3. **`json`**: comprueba si hace falta convertir texto a objeto.
+4. **`function`**: revisa si la ruta del dato es correcta.
+5. **`ui_*`**: comprueba si el widget recibe el tipo de dato correcto.
+6. **Dashboard**: revisa que Tab y Group estén bien asignados.
+
+### 6.26 Errores típicos
+
+#### No llega nada al `debug`
+
+Revisa:
+
+- el broker,
+- el topic,
+- y que el ESP8266 esté publicando datos.
+
+#### Sale `undefined`
+
+La ruta del dato es incorrecta.
+Vuelve al `debug` y revisa la estructura del JSON.
+
+#### El widget no aparece
+
+Seguramente no has seleccionado bien la **Tab** o el **Group**.
+
+#### El medidor no funciona
+
+Probablemente no está recibiendo un número, sino un JSON completo o un texto.
+
+#### No se enciende ni apaga el LED
+
+Revisa el topic del `mqtt out` y el tipo de dato que estás enviando.
+
+### 6.27 Objetivo final
+
+Al terminar este apartado deberías tener:
+
+- un flow que reciba los datos del ESP8266,
+- un nodo `debug` para inspeccionarlos,
+- uno o varios nodos `function` para extraer valores,
+- un Dashboard con textos y medidores,
+- y un control para enviar órdenes desde Node‑RED al ESP8266.
+
+Si has llegado hasta aquí, ya has montado tu **primer sistema IoT visual**:
+tu placa mide, publica, Node‑RED recibe, procesa y muestra los datos, y además puede enviar órdenes de vuelta.
+
+---
 
 
 ## Actividades sugeridas (aula)
